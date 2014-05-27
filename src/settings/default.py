@@ -36,9 +36,4 @@ LOGGING = {
     }
 }
 
-CFS = {
-    'MAX_DOMAINS': 2,
-    'DOMAIN_MASK': 'http://{}.404content.dev.pearbox.net'
-}
-
 RESAMPLE = 'ANTIALIAS'

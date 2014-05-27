@@ -4,10 +4,10 @@ import re
 
 from processors.crop import Crop
 from processors.resize import Resize
-from utils import get_full_url, get_image
+from utils import get_image
 
 
-def process(path, callback):
+def process(host, path, callback):
     __regexp_list = [
         r'^/(resize)/(\d+?)x-',
         r'^/(crop)'
@@ -43,7 +43,7 @@ def process(path, callback):
                 cont = True
                 break
 
-    image = get_image(get_full_url(path))
+    image = get_image(host + path)
     source_image_type = image.format.lower()
 
     for worker in workers:
