@@ -2,6 +2,8 @@ import logging
 from StringIO import StringIO
 import re
 
+from PIL import Image
+
 from processors.crop import Crop
 from processors.resize import Resize
 from utils import get_image
@@ -10,7 +12,7 @@ from utils import get_image
 def process(host, path, callback):
     __regexp_list = [
         r'^/(resize)/(\d+)x(-|\d+)',
-        r'^/(crop)(?:/(\d+)x(-|\d+))'
+        r'^/(crop)(?:/(\d+)x(-|\d+))?'
     ]
 
     workers = []
@@ -29,12 +31,12 @@ def process(host, path, callback):
 
                 width = mathced.group(2)
 
-                if width in ('-', ''):
+                if width is None or width in ('-', ''):
                     width = 0
 
                 height = mathced.group(3)
 
-                if height in ('-', ''):
+                if height is None or height in ('-', ''):
                     height = 0
 
                 width = int(width)
@@ -59,10 +61,12 @@ def process(host, path, callback):
                 break
 
     image = get_image(host + path)
-    source_image_type = image.format.lower()
+    source_image_type = image.format.upper()
 
     for worker in workers:
+        pl = image.getpalette()
         image = worker.do(image)
+        image.putpalette(pl)
 
     source_file = StringIO()
     image.save(source_file, source_image_type)
