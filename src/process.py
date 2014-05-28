@@ -64,9 +64,14 @@ def process(host, path, callback):
     source_image_type = image.format.upper()
 
     for worker in workers:
+        #extract palette from Image
         pl = image.getpalette()
+
         image = worker.do(image)
-        image.putpalette(pl)
+
+        if pl is not None:
+            #if image has palette then restore it
+            image.putpalette(pl)
 
     source_file = StringIO()
     image.save(source_file, source_image_type)
