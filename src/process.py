@@ -9,8 +9,8 @@ from utils import get_image
 
 def process(host, path, callback):
     __regexp_list = [
-        r'^/(resize)/(\d+?)x-',
-        r'^/(crop)'
+        r'^/(resize)/(\d+)x(-|\d+)',
+        r'^/(crop)(?:/(\d+)x(-|\d+))'
     ]
 
     workers = []
@@ -27,18 +27,33 @@ def process(host, path, callback):
 
                 key = mathced.group(1)
 
-                if key == 'resize':
-                    size = int(mathced.group(2))
+                width = mathced.group(2)
 
-                    logging.info("Add resize processor with size {size}".format(
-                        size=size
+                if width in ('-', ''):
+                    width = 0
+
+                height = mathced.group(3)
+
+                if height in ('-', ''):
+                    height = 0
+
+                width = int(width)
+                height = int(height)
+
+                if key == 'resize':
+                    logging.info("Add resize processor with size {width}x{height}".format(
+                        width=width,
+                        height=height
                     ))
 
-                    workers.append(Resize(size))
+                    workers.append(Resize(width, height))
                 elif key == 'crop':
-                    logging.info("Add crop processor")
+                    logging.info("Add crop processor width size {width}x{height}".format(
+                        width=width,
+                        height=height
+                    ))
 
-                    workers.append(Crop())
+                    workers.append(Crop(width, height))
 
                 cont = True
                 break

@@ -2,28 +2,36 @@ import logging
 from PIL import Image
 
 import settings
+from base import Processor
 
 
-class Resize(object):
-    """ Resize processor. Requires needed size
-    """
-    def __init__(self, size):
-        self.__size = size
-
+class Resize(Processor):
     def do(self, image):
         (width, height) = image.size
 
-        if width > self.__size:
-            logging.info("Image will be resized to {size}".format(
-                size=self.__size
+        if self._width > width:
+            self._width = width
+
+        if self._height > height:
+            self._height = height
+
+        if self._width > 0 and self._height == 0:
+            coef = width * 1.0 / self._width
+            self._height = int(height / coef)
+        elif self._height > 0 and self._width == 0:
+            coef = height * 1.0 / self._height
+            self._width = int(width / coef)
+        elif self._width == 0 and self._height == 0:
+            return image
+
+        if width >= self._width and height >= self._height:
+            logging.info("Image will be resized to {width}x{height}".format(
+                width=self._width,
+                height=self._height
             ))
 
-            coef = width / self.__size
-            width = self.__size
-            height = int(height / coef)
-
-            image.thumbnail(
-                (width, height),
+            image = image.resize(
+                (self._width, self._height),
                 getattr(Image, settings.RESAMPLE, Image.ANTIALIAS)
             )
         else:
