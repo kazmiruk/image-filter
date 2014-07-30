@@ -2,17 +2,17 @@ import logging
 from StringIO import StringIO
 import re
 
-from PIL import Image
-
 from processors.crop import Crop
 from processors.resize import Resize
+from processors.maxsz import Maxsz
 from utils import get_image
 
 
 def process(host, path, callback):
     __regexp_list = [
         r'^/(resize)/(\d+)x(-|\d+)',
-        r'^/(crop)(?:/(\d+)x(-|\d+))?'
+        r'^/(crop)(?:/(\d+)x(-|\d+))?',
+        r'^/(maxsz)/(\d+)x(\d+)'
     ]
 
     workers = []
@@ -50,12 +50,19 @@ def process(host, path, callback):
 
                     workers.append(Resize(width, height))
                 elif key == 'crop':
-                    logging.info("Add crop processor width size {width}x{height}".format(
+                    logging.info("Add crop processor with size {width}x{height}".format(
                         width=width,
                         height=height
                     ))
 
                     workers.append(Crop(width, height))
+                elif key == 'maxsz':
+                    logging.info("Add maxsz processor with size {width}x{height}".format(
+                        width=width,
+                        height=height
+                    ))
+
+                    workers.append(Maxsz(width, height))
 
                 cont = True
                 break
