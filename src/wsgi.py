@@ -1,6 +1,7 @@
 import logging
 from logging.config import dictConfig
 
+from exception import Http404, Http502
 from process import process
 import settings
 
@@ -22,9 +23,12 @@ def application(environ, start_response):
 
     try:
         return process(host, path, start_response)
-    except IOError, e:
+    except Http404:
         start_response('404 Not Found', [])
         return ["{host}{path} Not Found".format(host=host, path=path)]
+    except Http502:
+        start_response('502 Not Found', [])
+        return ["Bad gateway"]
     except Exception, e:
         logging.error(e)
         raise e
