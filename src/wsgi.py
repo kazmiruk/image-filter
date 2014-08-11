@@ -25,10 +25,10 @@ def application(environ, start_response):
         return process(host, path, start_response)
     except Http404:
         start_response('404 Not Found', [])
-        return ["{host}{path} Not Found".format(host=host, path=path)]
+        return []
     except Http502:
-        start_response('502 Not Found', [])
-        return ["Bad gateway"]
+        start_response('502 Bad gateway', [])
+        return []
     except Exception, e:
         logging.error(e)
         raise e
