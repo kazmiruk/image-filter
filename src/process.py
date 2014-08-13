@@ -5,15 +5,17 @@ import re
 from processors.crop import Crop
 from processors.resize import Resize
 from processors.maxsz import Maxsz
+from processors.cut import Cut
 from utils import get_image
 
 
 def process(host, path, callback):
-    __regexp_list = [
-        r'^/(resize)/(\d+)x(-|\d+)',
-        r'^/(crop)(?:/(\d+)x(-|\d+))?',
-        r'^/(maxsz)/(\d+)x(\d+)'
-    ]
+    __regexp_list = {
+        r'^/(resize)/(\d+)x(-|\d+)': Resize,
+        r'^/(crop)(?:/(\d+)x(-|\d+))?': Crop,
+        r'^/(maxsz)/(\d+)x(\d+)': Maxsz,
+        r'^/(cut)/(-|\d+)x(-|\d+)': Cut
+    }
 
     workers = []
     cont = True
@@ -27,8 +29,6 @@ def process(host, path, callback):
             if mathced is not None:
                 path = re.sub(pattern, '', path, re.IGNORECASE)
 
-                key = mathced.group(1)
-
                 width = mathced.group(2)
 
                 if width is None or width in ('-', ''):
@@ -39,30 +39,7 @@ def process(host, path, callback):
                 if height is None or height in ('-', ''):
                     height = 0
 
-                width = int(width)
-                height = int(height)
-
-                if key == 'resize':
-                    logging.info("Add resize processor with size {width}x{height}".format(
-                        width=width,
-                        height=height
-                    ))
-
-                    workers.append(Resize(width, height))
-                elif key == 'crop':
-                    logging.info("Add crop processor with size {width}x{height}".format(
-                        width=width,
-                        height=height
-                    ))
-
-                    workers.append(Crop(width, height))
-                elif key == 'maxsz':
-                    logging.info("Add maxsz processor with size {width}x{height}".format(
-                        width=width,
-                        height=height
-                    ))
-
-                    workers.append(Maxsz(width, height))
+                workers.append(__regexp_list[pattern](int(width), int(height)))
 
                 cont = True
                 break
