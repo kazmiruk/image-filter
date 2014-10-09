@@ -30,7 +30,7 @@ def application(environ, start_response):
         start_response('502 Bad gateway', [])
         return []
     except Exception, e:
-        logging.error(e)
+        logging.error(e, exc_info=True)
         raise e
 
 
