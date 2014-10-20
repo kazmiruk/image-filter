@@ -17,40 +17,48 @@ __regexp_list = {
 }
 
 
+def _build_workers(path):
+    """ Process path, build workers and remove placeholders from path
+    """
+    workers = []
+    cont = True
+
+    while cont:
+        cont = False
+
+        for pattern in __regexp_list:
+            mathced = re.match(pattern, path, re.IGNORECASE)
+
+            if mathced is not None:
+                path = re.sub(pattern, '', path, re.IGNORECASE)
+
+                width = mathced.group(2)
+
+                if width is None or width in ('-', ''):
+                    width = 0
+
+                height = mathced.group(3)
+
+                if height is None or height in ('-', ''):
+                    height = 0
+
+                workers.append(__regexp_list[pattern](int(width), int(height)))
+
+                cont = True
+                break
+
+    return path, workers
+
+
 def process(host, path, callback):
+    path, workers = _build_workers(path)
+
     source_file = get_file(host + path)
 
     if get_extension(path) == 'svg':
         # http://redmine.pearbox.net/issues/1605
         source_image_type = 'svg+xml'
     else:
-        workers = []
-        cont = True
-
-        while cont:
-            cont = False
-
-            for pattern in __regexp_list:
-                mathced = re.match(pattern, path, re.IGNORECASE)
-
-                if mathced is not None:
-                    path = re.sub(pattern, '', path, re.IGNORECASE)
-
-                    width = mathced.group(2)
-
-                    if width is None or width in ('-', ''):
-                        width = 0
-
-                    height = mathced.group(3)
-
-                    if height is None or height in ('-', ''):
-                        height = 0
-
-                    workers.append(__regexp_list[pattern](int(width), int(height)))
-
-                    cont = True
-                    break
-
         image = get_image(source_file)
         source_image_type = image.format.upper()
 
