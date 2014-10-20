@@ -6,10 +6,10 @@ import urllib
 from exception import Http404, Http502
 
 
-def get_image(url):
-    """ downloading image by url and creating PIL object
+def get_file(url):
+    """ downloading file by url and creating IO object
     """
-    logging.info("Downloading img {url}".format(
+    logging.info("Downloading file {url}".format(
         url=url
     ))
 
@@ -23,6 +23,15 @@ def get_image(url):
         raise Http502()
 
     content = content_response.read()
-    f = StringIO(content)
 
-    return Image.open(f)
+    return StringIO(content)
+
+
+def get_image(file):
+    """ creates PIL object
+    """
+    return Image.open(file)
+
+
+def get_extension(path):
+    return path.split('.')[-1].lower() if '.' in path else ''

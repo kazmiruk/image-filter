@@ -6,59 +6,67 @@ from processors.crop import Crop
 from processors.resize import Resize
 from processors.maxsz import Maxsz
 from processors.cut import Cut
-from utils import get_image
+from utils import get_image, get_extension, get_file
+
+
+__regexp_list = {
+    r'^/(resize)/(\d+)x(-|\d+)': Resize,
+    r'^/(crop)(?:/(\d+)x(-|\d+))?': Crop,
+    r'^/(maxsz)/(\d+)x(\d+)': Maxsz,
+    r'^/(cut)/(-|\d+)x(-|\d+)': Cut
+}
 
 
 def process(host, path, callback):
-    __regexp_list = {
-        r'^/(resize)/(\d+)x(-|\d+)': Resize,
-        r'^/(crop)(?:/(\d+)x(-|\d+))?': Crop,
-        r'^/(maxsz)/(\d+)x(\d+)': Maxsz,
-        r'^/(cut)/(-|\d+)x(-|\d+)': Cut
-    }
+    source_file = get_file(host + path)
 
-    workers = []
-    cont = True
+    if get_extension(path) == 'svg':
+        # http://redmine.pearbox.net/issues/1605
+        source_image_type = 'svg+xml'
+    else:
+        workers = []
+        cont = True
 
-    while cont:
-        cont = False
+        while cont:
+            cont = False
 
-        for pattern in __regexp_list:
-            mathced = re.match(pattern, path, re.IGNORECASE)
+            for pattern in __regexp_list:
+                mathced = re.match(pattern, path, re.IGNORECASE)
 
-            if mathced is not None:
-                path = re.sub(pattern, '', path, re.IGNORECASE)
+                if mathced is not None:
+                    path = re.sub(pattern, '', path, re.IGNORECASE)
 
-                width = mathced.group(2)
+                    width = mathced.group(2)
 
-                if width is None or width in ('-', ''):
-                    width = 0
+                    if width is None or width in ('-', ''):
+                        width = 0
 
-                height = mathced.group(3)
+                    height = mathced.group(3)
 
-                if height is None or height in ('-', ''):
-                    height = 0
+                    if height is None or height in ('-', ''):
+                        height = 0
 
-                workers.append(__regexp_list[pattern](int(width), int(height)))
+                    workers.append(__regexp_list[pattern](int(width), int(height)))
 
-                cont = True
-                break
+                    cont = True
+                    break
 
-    image = get_image(host + path)
-    source_image_type = image.format.upper()
+        image = get_image(source_file)
+        source_image_type = image.format.upper()
 
-    for worker in workers:
-        #extract palette from Image
-        pl = image.getpalette()
+        for worker in workers:
+            #extract palette from Image
+            pl = image.getpalette()
 
-        image = worker.do(image)
+            image = worker.do(image)
 
-        if pl is not None:
-            #if image has palette then restore it
-            image.putpalette(pl)
+            if pl is not None:
+                #if image has palette then restore it
+                image.putpalette(pl)
 
-    source_file = StringIO()
-    image.save(source_file, source_image_type)
+        source_file = StringIO()
+        image.save(source_file, source_image_type)
+
     data = source_file.getvalue()
     data_len = len(data)
 
@@ -71,4 +79,5 @@ def process(host, path, callback):
         ('Content-type', 'image/{type}'.format(type=source_image_type)),
         ('Content-length', str(data_len))
     ])
+
     return [data]
