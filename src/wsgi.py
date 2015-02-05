@@ -11,15 +11,10 @@ dictConfig(settings.LOGGING)
 def application(environ, start_response):
     """application which realize wsgi interface
     """
-    host = "{schema}://{host}".format(
-        schema=environ['wsgi.url_scheme'],
-        host=environ['HTTP_HOST']
-    )
+    host = "{schema}://{host}".format(schema=environ['wsgi.url_scheme'], host=environ['HTTP_HOST'])
     path = environ['PATH_INFO']
 
-    logging.info("Query obtained with path {path}".format(
-        path=environ['PATH_INFO']
-    ))
+    logging.info("Query obtained with path {path}".format(path=environ['PATH_INFO']))
 
     try:
         return process(host, path, start_response)

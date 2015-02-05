@@ -9,9 +9,7 @@ from exception import Http404, Http502
 def get_file(url):
     """ downloading file by url and creating IO object
     """
-    logging.info("Downloading file {url}".format(
-        url=url
-    ))
+    logging.info("Downloading file {url}".format(url=url))
 
     content_response = urllib.urlopen(url)
 

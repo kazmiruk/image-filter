@@ -60,6 +60,7 @@ def process(host, path, callback):
         source_image_type = 'svg+xml'
     else:
         image = get_image(source_file)
+        exif = image.info.get('exif', b'')
         source_image_type = image.format.upper()
 
         for worker in workers:
@@ -73,19 +74,15 @@ def process(host, path, callback):
                 image.putpalette(pl)
 
         source_file = StringIO()
-        image.save(source_file, source_image_type)
+        image.save(source_file, source_image_type, exif=exif)
 
     data = source_file.getvalue()
     data_len = len(data)
 
     logging.info('Image was successful processed with type {type} and len {data_len}'.format(
-        type=source_image_type,
-        data_len=data_len
-    ))
+        type=source_image_type, data_len=data_len))
 
-    callback('200 OK', [
-        ('Content-type', 'image/{type}'.format(type=source_image_type)),
-        ('Content-length', str(data_len))
-    ])
+    callback('200 OK', [('Content-type', 'image/{type}'.format(type=source_image_type)),
+                        ('Content-length', str(data_len))])
 
     return [data]
