@@ -37,3 +37,8 @@ LOGGING = {
 }
 
 RESAMPLE = 'ANTIALIAS'
+
+# http://redmine.pearbox.net/issues/2178
+from PIL import ImageFile
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
